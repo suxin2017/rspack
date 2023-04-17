@@ -9,9 +9,11 @@ pub use context_element_dependency::*;
 mod common_js_require_context_dependency;
 mod const_dependency;
 mod import_context_dependency;
+mod url_context_dependency;
 pub use common_js_require_context_dependency::*;
 pub use const_dependency::ConstDependency;
 pub use import_context_dependency::*;
+pub use url_context_dependency::*;
 mod dynamic_import;
 mod require_context_dependency;
 use std::{
@@ -47,6 +49,8 @@ pub enum DependencyType {
   CjsRequire,
   // new URL("./foo", import.meta.url)
   NewUrl,
+  // new URL(`${a}./foo`, import.meta.url)
+  NewUrlContext,
   // import.meta.webpackHot.accept
   ImportMetaHotAccept,
   // import.meta.webpackHot.decline
@@ -87,6 +91,7 @@ impl Display for DependencyType {
       DependencyType::DynamicImport => write!(f, "dynamic import"),
       DependencyType::CjsRequire => write!(f, "cjs require"),
       DependencyType::NewUrl => write!(f, "new URL()"),
+      DependencyType::NewUrlContext => write!(f, "new URL() context"),
       DependencyType::ImportMetaHotAccept => write!(f, "import.meta.webpackHot.accept"),
       DependencyType::ImportMetaHotDecline => write!(f, "import.meta.webpackHot.decline"),
       DependencyType::ModuleHotAccept => write!(f, "module.hot.accept"),

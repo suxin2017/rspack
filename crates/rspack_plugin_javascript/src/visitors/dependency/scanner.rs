@@ -1,7 +1,7 @@
 use rspack_core::{
   CommonJsRequireContextDependency, CompilerOptions, ConstDependency, ContextMode, ContextOptions,
   Dependency, DependencyCategory, EsmDynamicImportDependency, ImportContextDependency,
-  ModuleDependency, RequireContextDependency, ResourceData, RuntimeGlobals,
+  ModuleDependency, RequireContextDependency, ResourceData, RuntimeGlobals, UrlContextDependency,
 };
 use rspack_regex::RspackRegex;
 use swc_core::common::comments::Comments;
@@ -183,10 +183,11 @@ impl DependencyScanner<'_> {
     {
       if let Some(args) = &new_expr.args {
         if let (Some(first), Some(second)) = (args.first(), args.get(1)) {
+          dbg!(&first);
           if let (
             ExprOrSpread {
               spread: None,
-              expr: box Expr::Lit(Lit::Str(path)),
+              expr: first_expr,
             },
             // import.meta.url
             ExprOrSpread {
@@ -208,11 +209,33 @@ impl DependencyScanner<'_> {
             },
           ) = (first, second)
           {
-            self.add_dependency(box URLDependency::new(
-              path.value.clone(),
-              Some(new_expr.span.into()),
-              as_parent_path(ast_path),
-            ))
+            match first_expr.as_ref() {
+              Expr::Lit(Lit::Str(path)) => self.add_dependency(box URLDependency::new(
+                path.value.clone(),
+                Some(new_expr.span.into()),
+                as_parent_path(ast_path),
+              )),
+              _ => {
+                if let Some((context, reg)) = scanner_context_module(first_expr.as_ref()) {
+                  dbg!(context, reg);
+
+                  // self.add_dependency(box UrlContextDependency::new(
+                  //   ContextOptions {
+                  //     mode: ContextMode::Sync,
+                  //     recursive: true,
+                  //     reg_exp: RspackRegex::new(&reg).expect("reg failed"),
+                  //     reg_str: reg,
+                  //     include: None,
+                  //     exclude: None,
+                  //     category: DependencyCategory::Esm,
+                  //     request: context,
+                  //   },
+                  //   Some(new_expr.span.into()),
+                  //   as_parent_path(ast_path),
+                  // ));
+                }
+              }
+            }
           }
         }
       }
