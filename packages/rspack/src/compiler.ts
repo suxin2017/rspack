@@ -578,8 +578,7 @@ class Compiler {
 			compilation: this.hooks.compilation,
 			optimizeChunkModules: this.compilation.hooks.optimizeChunkModules,
 			finishModules: this.compilation.hooks.finishModules,
-			optimizeModules: this.compilation.hooks.optimizeModules,
-			chunkAsset: this.compilation.hooks.chunkAsset
+			optimizeModules: this.compilation.hooks.optimizeModules
 		};
 		for (const [name, hook] of Object.entries(hookMap)) {
 			if (hook.taps.length === 0) {
