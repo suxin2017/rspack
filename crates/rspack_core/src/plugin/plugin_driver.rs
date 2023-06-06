@@ -450,7 +450,7 @@ impl PluginDriver {
   }
 
   #[instrument(name = "plugin:make", skip_all)]
-  pub async fn make(&self, compilation: &Compilation) -> PluginMakeHookOutput {
+  pub async fn make(&self, compilation: &mut Compilation) -> PluginMakeHookOutput {
     for plugin in &self.plugins {
       plugin.make(PluginContext::new(), compilation).await?;
     }

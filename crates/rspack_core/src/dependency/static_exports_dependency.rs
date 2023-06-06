@@ -58,5 +58,6 @@ impl CodeGeneratable for StaticExportsDependency {
     _code_generatable_context: &mut CodeGeneratableContext,
   ) -> rspack_error::Result<CodeGeneratableResult> {
     todo!()
+    // Ok(CodeGeneratableResult::default())
   }
 }

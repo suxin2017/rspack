@@ -1,7 +1,9 @@
+use std::thread::sleep;
 use std::{path::PathBuf, sync::Arc};
 
 use rspack_error::{Diagnostic, Result};
 
+use crate::container_entry_module_factory::ContainerEntryModuleFactory;
 use crate::{
   cache::Cache, BoxModuleDependency, BuildContext, BuildResult, Compilation, CompilerContext,
   CompilerOptions, ContextModuleFactory, DependencyId, DependencyType, Module, ModuleFactory,
@@ -52,6 +54,7 @@ pub struct FactorizeTaskResult {
 #[async_trait::async_trait]
 impl WorkerTask for FactorizeTask {
   async fn run(self) -> Result<TaskResult> {
+    dbg!(&self.dependencies);
     let dependencies = self
       .dependencies
       .iter()
@@ -73,7 +76,22 @@ impl WorkerTask for FactorizeTask {
       Some(self.options.context.to_string_lossy().to_string())
     };
 
+    dbg!(&dependency);
     let (result, diagnostics) = match *dependency.dependency_type() {
+      DependencyType::ContainerEntry => {
+        println!("conteinere entry");
+        let factory = ContainerEntryModuleFactory {};
+        factory
+          .create(
+            (ModuleFactoryCreateData {
+              resolve_options: self.resolve_options,
+              context,
+              dependency: dependency.clone(),
+            }),
+          )
+          .await?
+          .split_into_parts()
+      }
       DependencyType::ImportContext
       | DependencyType::CommonJSRequireContext
       | DependencyType::RequireContext => {

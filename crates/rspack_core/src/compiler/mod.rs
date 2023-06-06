@@ -119,9 +119,7 @@ where
       .await
       .compilation(&mut self.compilation)
       .await?;
-
     self.compilation.setup_entry_dependencies();
-
     let deps = self
       .compilation
       .entry_dependencies
@@ -134,6 +132,7 @@ where
           .collect::<Vec<_>>()
       })
       .collect::<HashSet<_>>();
+    dbg!(&deps);
     self.compile(SetupMakeParam::ForceBuildDeps(deps)).await?;
     self.cache.begin_idle();
     self.compile_done().await?;
@@ -219,6 +218,7 @@ where
       } else {
         // clean unused file
         let assets = self.compilation.assets();
+        dbg!(&assets);
         let _ = self
           .emitted_asset_versions
           .iter()

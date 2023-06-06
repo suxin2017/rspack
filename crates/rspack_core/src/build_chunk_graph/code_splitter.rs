@@ -37,8 +37,10 @@ impl<'me> CodeSplitter<'me> {
     &mut self,
   ) -> Result<HashMap<ChunkGroupUkey, Vec<ModuleIdentifier>>> {
     let compilation = &mut self.compilation;
+    // 拿了module_graph
     let module_graph = &compilation.module_graph;
 
+    // 所有的entry
     let entries = compilation.entry_data();
 
     let mut input_entrypoints_and_modules: HashMap<ChunkGroupUkey, Vec<ModuleIdentifier>> =
@@ -47,11 +49,12 @@ impl<'me> CodeSplitter<'me> {
     for (name, entry_data) in entries.iter() {
       let options = &entry_data.options;
       let dependencies = &entry_data.dependencies;
+      // module 的 key
       let module_identifiers = dependencies
         .iter()
         .filter_map(|dep| module_graph.module_identifier_by_dependency_id(dep))
         .collect::<Vec<_>>();
-
+      // 通过name 添加到 chunks 中
       let chunk = Compilation::add_named_chunk(
         name.to_string(),
         &mut compilation.chunk_by_ukey,
@@ -62,6 +65,7 @@ impl<'me> CodeSplitter<'me> {
         .remove_parent_modules_context
         .add_root_chunk(chunk.ukey);
 
+      //
       compilation.chunk_graph.add_chunk(chunk.ukey);
 
       let mut entrypoint = ChunkGroup::new(

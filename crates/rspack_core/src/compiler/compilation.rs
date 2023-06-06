@@ -36,9 +36,9 @@ use crate::{
   BuildQueue, BuildTask, BuildTaskResult, BundleEntries, Chunk, ChunkByUkey, ChunkContentHash,
   ChunkGraph, ChunkGroup, ChunkGroupUkey, ChunkHashArgs, ChunkKind, ChunkUkey, CleanQueue,
   CleanTask, CleanTaskResult, CodeGenerationResult, CodeGenerationResults, CompilerOptions,
-  ContentHashArgs, DependencyId, EntryDependency, EntryItem, EntryOptions, Entrypoint,
-  FactorizeQueue, FactorizeTask, FactorizeTaskResult, Filename, Module, ModuleGraph,
-  ModuleIdentifier, ModuleType, NormalModuleAstOrSource, PathData, ProcessAssetsArgs,
+  ContentHashArgs, Dependency, DependencyId, EntryDependency, EntryItem, EntryOptions, Entrypoint,
+  FactorizeQueue, FactorizeTask, FactorizeTaskResult, Filename, Module, ModuleDependency,
+  ModuleGraph, ModuleIdentifier, ModuleType, NormalModuleAstOrSource, PathData, ProcessAssetsArgs,
   ProcessDependenciesQueue, ProcessDependenciesResult, ProcessDependenciesTask, RenderManifestArgs,
   Resolve, ResolverFactory, RuntimeGlobals, RuntimeModule, RuntimeSpec, SharedPluginDriver, Stats,
   TaskResult, WorkerTask,
@@ -164,7 +164,11 @@ impl Compilation {
     }
   }
 
-  pub fn add_entry(&mut self, name: String, detail: EntryItem) {
+  pub fn add_entry(&mut self, name: String, deps: Box<dyn ModuleDependency>, detail: EntryItem) {
+    let dependencyId = self.module_graph.add_dependency(deps);
+    self
+      .entry_dependencies
+      .insert(name.to_string(), vec![dependencyId]);
     self.entries.insert(name, detail);
   }
 
@@ -350,9 +354,11 @@ impl Compilation {
           self.module_graph.add_dependency(dependency)
         })
         .collect::<Vec<_>>();
-      self
-        .entry_dependencies
-        .insert(name.to_string(), dependencies);
+      if self.entry_dependencies.get(name).is_none() {
+        self
+          .entry_dependencies
+          .insert(name.to_string(), dependencies);
+      }
     })
   }
 
@@ -459,7 +465,6 @@ impl Compilation {
     let mut make_failed_dependencies: HashSet<BuildDependency> = HashSet::default();
     let mut make_failed_module = HashSet::default();
     let mut errored = None;
-
     force_build_deps.extend(
       force_build_module
         .iter()

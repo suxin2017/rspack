@@ -506,6 +506,7 @@ impl TestConfig {
     for html in self.builtins.html {
       plugins.push(rspack_plugin_html::HtmlPlugin::new(html).boxed());
     }
+    plugins.push(rspack_core::ContainerPlugin::new(Default::default()).boxed());
     plugins.push(
       rspack_plugin_css::CssPlugin::new(rspack_plugin_css::plugin::CssConfig {
         targets,

@@ -5,4 +5,6 @@ pub use api::*;
 mod context;
 pub use context::*;
 mod args;
+mod container_plugin;
 pub use args::*;
+pub use container_plugin::*;

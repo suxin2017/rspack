@@ -70,6 +70,8 @@ mod ukey;
 pub use ukey::*;
 mod module_graph_module;
 pub use module_graph_module::*;
+mod container_entry_module;
+mod container_entry_module_factory;
 pub mod tree_shaking;
 
 pub use rspack_loader_runner::{get_scheme, ResourceData, Scheme};

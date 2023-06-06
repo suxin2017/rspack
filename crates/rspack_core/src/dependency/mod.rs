@@ -35,7 +35,11 @@ use dyn_clone::{clone_trait_object, DynClone};
 pub use dynamic_import::*;
 pub use require_context_dependency::RequireContextDependency;
 pub use require_resolve_dependency::RequireResolveDependency;
+mod container_entry_dependency;
+mod container_export_dependency;
 mod static_exports_dependency;
+pub use container_entry_dependency::*;
+pub use container_export_dependency::*;
 pub use static_exports_dependency::*;
 
 use crate::{ContextMode, ContextOptions, ErrorSpan, ModuleGraph, ModuleIdentifier};
@@ -88,6 +92,9 @@ pub enum DependencyType {
   /// static exports
   StaticExports,
   Custom(Cow<'static, str>),
+
+  ContainerEntry,
+  ContainerExposedDependency,
 }
 
 impl Display for DependencyType {
@@ -116,6 +123,8 @@ impl Display for DependencyType {
       DependencyType::WasmExportImported => write!(f, "wasm export imported"),
       DependencyType::StaticExports => write!(f, "static exports"),
       DependencyType::Custom(ty) => write!(f, "custom {ty}"),
+      DependencyType::ContainerExposedDependency => write!(f, "container exposed dependency"),
+      DependencyType::ContainerEntry => write!(f, "container entry"),
     }
   }
 }
@@ -356,6 +365,12 @@ pub type BoxDependency = Box<dyn Dependency>;
 
 pub fn is_async_dependency(dep: &BoxModuleDependency) -> bool {
   if matches!(dep.dependency_type(), DependencyType::DynamicImport) {
+    return true;
+  }
+  if matches!(
+    dep.dependency_type(),
+    DependencyType::ContainerExposedDependency
+  ) {
     return true;
   }
   if matches!(dep.dependency_type(), DependencyType::ContextElement) {

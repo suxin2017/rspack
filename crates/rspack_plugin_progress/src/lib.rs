@@ -47,7 +47,11 @@ impl Plugin for ProgressPlugin {
     "progress"
   }
 
-  async fn make(&self, _ctx: PluginContext, _compilation: &Compilation) -> PluginMakeHookOutput {
+  async fn make(
+    &self,
+    _ctx: PluginContext,
+    _compilation: &mut Compilation,
+  ) -> PluginMakeHookOutput {
     self.progress_bar.reset();
     self.progress_bar.set_prefix(
       self
