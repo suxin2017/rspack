@@ -122,9 +122,11 @@ function getRawEntry(entry: EntryNormalized): RawOptions["entry"] {
 	const raw: RawOptions["entry"] = {};
 	for (const key of Object.keys(entry)) {
 		const runtime = entry[key].runtime;
+		const chunkLoading = entry[key].chunkLoading;
 		raw[key] = {
 			import: entry[key].import!,
-			runtime: runtime === false ? undefined : runtime
+			runtime: runtime === false ? undefined : runtime,
+			chunkLoading: chunkLoading === false ? "false" : chunkLoading
 		};
 	}
 	return raw;
@@ -192,10 +194,10 @@ function getRawOutput(output: OutputNormalized): RawOptions["output"] {
 		clean: output.clean!,
 		assetModuleFilename: output.assetModuleFilename!,
 		filename: output.filename!,
-		chunkFormat: output.chunkFormat === false ? undefined : output.chunkFormat!,
+		chunkFormat: output.chunkFormat === false ? "false" : output.chunkFormat!,
 		chunkFilename: output.chunkFilename!,
 		chunkLoading:
-			output.chunkLoading === false ? undefined : output.chunkLoading!,
+			output.chunkLoading === false ? "false" : output.chunkLoading!,
 		crossOriginLoading: getRawCrossOriginLoading(output.crossOriginLoading!),
 		cssFilename: output.cssFilename!,
 		cssChunkFilename: output.cssChunkFilename!,

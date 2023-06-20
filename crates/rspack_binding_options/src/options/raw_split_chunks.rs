@@ -3,8 +3,9 @@ use std::{collections::HashMap, sync::Arc};
 use derivative::Derivative;
 use napi::{Either, JsString};
 use napi_derive::napi;
+use new_split_chunks_plugin::ModuleTypeFilter;
 use rspack_core::SourceType;
-use rspack_napi_shared::{JsRegExp, JsStringExt};
+use rspack_napi_shared::{JsRegExp, JsRegExpExt, JsStringExt};
 use rspack_plugin_split_chunks::{CacheGroupOptions, ChunkType, SplitChunksOptions, TestFn};
 use serde::Deserialize;
 
@@ -130,6 +131,10 @@ pub struct RawCacheGroupOptions {
   #[napi(ts_type = "RegExp | 'async' | 'initial' | 'all'")]
   #[derivative(Debug = "ignore")]
   pub chunks: Option<Chunks>,
+  #[serde(skip_deserializing)]
+  #[napi(ts_type = "RegExp | string")]
+  #[derivative(Debug = "ignore")]
+  pub r#type: Option<Either<JsRegExp, JsString>>,
   //   pub automatic_name_delimiter: String,
   //   pub max_async_requests: usize,
   //   pub max_initial_requests: usize,
@@ -154,8 +159,7 @@ use rspack_plugin_split_chunks_new as new_split_chunks_plugin;
 fn create_chunks_filter(raw: Chunks) -> rspack_plugin_split_chunks_new::ChunkFilter {
   match raw {
     Either::A(reg) => {
-      let reg = reg.source();
-      rspack_plugin_split_chunks_new::create_regex_chunk_filter_from_str(&reg)
+      rspack_plugin_split_chunks_new::create_regex_chunk_filter_from_str(reg.to_rspack_regex())
     }
     Either::B(str) => {
       let str = str.into_string();
@@ -231,15 +235,10 @@ impl From<RawSplitChunksOptions> for new_split_chunks_plugin::PluginOptions {
             .min_chunks
             .unwrap_or(if enforce { 1 } else { overall_min_chunks });
 
-          let type_filter = new_split_chunks_plugin::create_type_filter(v.r#type.map(|t| {
-            match t {
-              Either::A(reg) => new_split_chunks_plugin::Type::Regex(
-                rspack_regex::RspackRegex::new(&reg.source())
-                  .unwrap_or_else(|_| panic!("Invalid regex: {}", reg.source())),
-              ),
-              Either::B(st) => new_split_chunks_plugin::Type::String(st.into_string()),
-            }
-          }));
+          let r#type = v
+            .r#type
+            .map(create_module_type_filter)
+            .unwrap_or_else(rspack_plugin_split_chunks_new::create_default_module_type_filter);
 
           new_split_chunks_plugin::CacheGroup {
             id_hint: key.clone(),
@@ -265,6 +264,7 @@ impl From<RawSplitChunksOptions> for new_split_chunks_plugin::PluginOptions {
             max_initial_requests: u32::MAX,
             max_async_size,
             max_initial_size,
+            r#type,
           }
         }),
     );
@@ -317,4 +317,17 @@ pub struct RawFallbackCacheGroupOptions {
   pub max_size: Option<f64>,
   pub max_async_size: Option<f64>,
   pub max_initial_size: Option<f64>,
+}
+
+fn create_module_type_filter(raw: Either<JsRegExp, JsString>) -> ModuleTypeFilter {
+  match raw {
+    Either::A(js_reg) => {
+      let regex = js_reg.to_rspack_regex();
+      Arc::new(move |m| regex.test(m.module_type().as_str()))
+    }
+    Either::B(js_str) => {
+      let type_str = js_str.into_string();
+      Arc::new(move |m| m.module_type().as_str() == type_str.as_str())
+    }
+  }
 }

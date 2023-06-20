@@ -2224,6 +2224,7 @@ dependencies = [
  "rspack_plugin_css",
  "rspack_plugin_dev_friendly_split_chunks",
  "rspack_plugin_devtool",
+ "rspack_plugin_entry",
  "rspack_plugin_externals",
  "rspack_plugin_html",
  "rspack_plugin_javascript",
@@ -2466,6 +2467,7 @@ version = "0.1.0"
 dependencies = [
  "napi",
  "rspack_error",
+ "rspack_regex",
  "tokio",
 ]
 
@@ -2616,6 +2618,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rspack_plugin_entry"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "rspack_core",
+ "rspack_error",
+ "rspack_util",
+ "rustc-hash",
+]
+
+[[package]]
 name = "rspack_plugin_externals"
 version = "0.1.0"
 dependencies = [
@@ -2702,6 +2715,8 @@ dependencies = [
 name = "rspack_plugin_library"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
+ "regex",
  "rspack_core",
  "rspack_error",
  "rspack_identifier",
@@ -2875,6 +2890,7 @@ dependencies = [
  "rspack_plugin_css",
  "rspack_plugin_dev_friendly_split_chunks",
  "rspack_plugin_devtool",
+ "rspack_plugin_entry",
  "rspack_plugin_externals",
  "rspack_plugin_html",
  "rspack_plugin_javascript",
