@@ -172,10 +172,24 @@ impl ChunkGraph {
       .filter(|mgm| {
         module_graph
           .module_by_identifier(&mgm.module_identifier)
-          .map(|module| module.source_types().contains(&source_type))
+          .map(|module| {
+            if matches!(source_type, SourceType::Css) {
+              dbg!(format!(
+                "identifier {} source_types {:#?} module.source_types().contains(&source_type) {}",
+                module.identifier(),
+                module.source_types(),
+                module.source_types().contains(&source_type)
+              ),);
+            }
+
+            module.source_types().contains(&source_type)
+          })
           .unwrap_or_default()
       })
       .collect::<Vec<_>>();
+    if matches!(source_type, SourceType::Css) {
+      dbg!(&modules, source_type);
+    }
     modules
   }
 

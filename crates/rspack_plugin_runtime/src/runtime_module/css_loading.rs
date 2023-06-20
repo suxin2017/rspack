@@ -78,7 +78,6 @@ impl RuntimeModule for CssLoadingRuntimeModule {
 
       let mut initial_chunk_ids_with_css = HashSet::default();
       let initial_chunks = chunk.get_all_initial_chunks(&compilation.chunk_group_by_ukey);
-
       for chunk_ukey in initial_chunks.iter() {
         if Self::chunk_has_css(
           chunk_ukey,
@@ -92,7 +91,9 @@ impl RuntimeModule for CssLoadingRuntimeModule {
           initial_chunk_ids_with_css.insert(chunk.expect_id().to_string());
         }
       }
-
+      dbg!(&initial_chunk_ids_with_css);
+      dbg!(&async_chunk_ids_with_css);
+      println!("=============\n");
       let mut source = ConcatSource::default();
       // object to store loaded and loading chunks
       // undefined = chunk not loaded, null = chunk preloaded/prefetched

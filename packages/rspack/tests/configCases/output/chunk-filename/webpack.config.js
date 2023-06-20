@@ -3,7 +3,7 @@ module.exports = {
 	entry: {
 		main: "./index"
 	},
-	target: "node",
+	target: "web",
 	output: {
 		filename: "[name].js",
 		chunkFilename: "chunks/async-[name].js"

@@ -285,7 +285,6 @@ impl Chunk {
         &mut visit_chunk_groups,
       );
     }
-
     chunks
   }
 

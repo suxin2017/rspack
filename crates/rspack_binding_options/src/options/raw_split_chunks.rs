@@ -109,6 +109,8 @@ impl From<RawSplitChunksOptions> for SplitChunksOptions {
   }
 }
 
+type Type = Either<JsRegExp, JsString>;
+
 #[derive(Derivative, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[napi(object)]
@@ -116,7 +118,9 @@ impl From<RawSplitChunksOptions> for SplitChunksOptions {
 pub struct RawCacheGroupOptions {
   pub priority: Option<i32>,
   // pub reuse_existing_chunk: Option<bool>,
-  //   pub r#type: SizeType,
+  #[serde(skip_deserializing)]
+  #[derivative(Debug = "ignore")]
+  pub r#type: Option<Type>,
   pub test: Option<String>,
   //   pub filename: String,
   //   pub enforce: bool,
@@ -227,9 +231,20 @@ impl From<RawSplitChunksOptions> for new_split_chunks_plugin::PluginOptions {
             .min_chunks
             .unwrap_or(if enforce { 1 } else { overall_min_chunks });
 
+          let type_filter = new_split_chunks_plugin::create_type_filter(v.r#type.map(|t| {
+            match t {
+              Either::A(reg) => new_split_chunks_plugin::Type::Regex(
+                rspack_regex::RspackRegex::new(&reg.source())
+                  .unwrap_or_else(|_| panic!("Invalid regex: {}", reg.source())),
+              ),
+              Either::B(st) => new_split_chunks_plugin::Type::String(st.into_string()),
+            }
+          }));
+
           new_split_chunks_plugin::CacheGroup {
             id_hint: key.clone(),
             key,
+            r#type: type_filter,
             name: v
               .name
               .map(new_split_chunks_plugin::create_chunk_name_getter_by_const_name)

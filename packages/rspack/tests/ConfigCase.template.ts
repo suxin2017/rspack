@@ -153,7 +153,7 @@ export const describeCases = config => {
 							testConfig = {
 								findBundle: function (i, options) {
 									// const ext = path.extname(
-									//     parse(options.output.filename).path
+									// 	parse(options.output.filename).path
 									// );
 									// if (
 									//     fs.existsSync(
@@ -162,6 +162,11 @@ export const describeCases = config => {
 									// ) {
 									//     return "./bundle" + i + ext;
 									// }
+									if (
+										fs.existsSync(path.join(options.context, "loadBundle.js"))
+									) {
+										return require(path.join(options.context, "loadBundle.js"));
+									}
 									return "./main.js";
 								}
 								// timeout: 30000

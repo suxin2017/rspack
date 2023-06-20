@@ -63,6 +63,32 @@ pub fn create_module_filter(re: Option<String>) -> ModuleFilter {
   .unwrap_or_else(create_default_module_filter)
 }
 
+pub type TypeFilter = Arc<dyn Fn(&dyn Module) -> bool + Send + Sync>;
+
+fn create_default_type_filter() -> TypeFilter {
+  Arc::new(|_| true)
+}
+fn create_type_filter_from_rspack_regex(re: rspack_regex::RspackRegex) -> TypeFilter {
+  Arc::new(move |module| re.test(&module.module_type().to_string()))
+}
+fn create_type_filter_from_str(str: String) -> TypeFilter {
+  Arc::new(move |module| str.eq(&module.module_type().to_string()))
+}
+
+pub enum Type {
+  String(String),
+  Regex(rspack_regex::RspackRegex),
+}
+
+pub fn create_type_filter(raw_type: Option<Type>) -> TypeFilter {
+  raw_type
+    .map(|raw_type_filter| match raw_type_filter {
+      Type::String(str) => create_type_filter_from_str(str),
+      Type::Regex(re) => create_type_filter_from_rspack_regex(re),
+    })
+    .unwrap_or_else(create_default_type_filter)
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct SplitChunkSizes(pub(crate) FxHashMap<SourceType, f64>);
 

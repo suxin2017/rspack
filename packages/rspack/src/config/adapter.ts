@@ -654,8 +654,9 @@ function toRawSplitChunksOptions(
 				.map(([key, group]) => {
 					group = group as Exclude<typeof group, false>;
 
-					const { test, name, ...passThrough } = group;
+					const { test, name, type, ...passThrough } = group;
 					const rawGroup: RawCacheGroupOptions = {
+						type: type,
 						test: test?.source,
 						name: name === false ? undefined : name,
 						...passThrough
